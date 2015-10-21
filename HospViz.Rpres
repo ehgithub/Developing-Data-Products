@@ -1,0 +1,84 @@
+Hospital Data Visualization
+========================================================
+author: Edgar Hamon
+date: Oct / 2015
+transition:rotate
+
+
+Hospital Data Vislualization - Intro
+========================================================
+This application uses the data collected at "Hospital Comapare" website (http://hospitalcompare.hhs.gov) which contains information about quality care at over 4.000 certified hospitals in the USA.
+
+The specific dataset used by this application is the "outcome-of-care-measures.csv" than can be found in the website above. It contains information about 30 days mortality and readmission rates for several health or medical conditions over 4.000 hospitals
+
+The idea of this App is to offer a visual comparison of the outcome of care of the different hospitals allowing users to select one specific medical condition and one or many states. It will show data in table and graph views of the best and worst outcome hospitals based on user's selection.
+
+
+
+Data facts and exploration 
+========================================================
+- Data contains 4.706 observations of 46 variables
+```{r}
+data <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+dim (data)
+```
+
+- For the purpose of this application, we are interested in mortality rates for Heart Attack, Heart Failure and Pneumonia. We remove unnecessary columns and keep some minimal basic Hospital information and the mortality rates mentioned before. Our final dataset contains 4.706 observations of 10 variables
+
+```{r echo=FALSE}
+data <- data[-(24:46)] # eliminate unnecesary variables
+data <- data[-(12:16)]
+data <- data[-(13:17)]
+data <- data[-(4:5)]
+data <- data[-8]
+names(data)[8] <- "Heart_attack"
+names(data)[9] <- "Heart_failure"
+names(data)[10] <- "Pneumonia"
+dim(data)
+
+```
+
+
+
+App Features
+========================================================
+
+This application offers the following features: 
+
+- User can select the medical condition and the State (or States) of his interest in the left panel of the app. Also, there are action buttons that allow to "select all" or "clear all" states.
+
+- Information is presented in tablular fashion based on user selections, using the "Dataset" tab in the app.
+
+- Information can be viewed in graphical fashion based on user selection using the "Vislualize the data" tab. In this view users can see plots of lower and higher mortality rates, as well as summary staticstical information.
+
+
+
+Plot Sample
+========================================================
+<small> This is a sample of one of the plots render by the application. This sample shows the top 10 hospitals with lower mortality rates in NJ for Heart Attack.
+
+Note: Exact display might vary.
+</small>
+
+```{r, echo=FALSE}
+# manual selection to show sample of application plot
+dt <- data[data$State == "NJ", ]
+dt$Selection <- dt[,8]
+dt <- dt[dt$Selection != 0, ]  # eliminate hospitals with 0 occurrences
+dt <- dt[order(dt$Selection),] # sorts by Selection 
+dtop10 <- dt[1:10,]
+
+# use ggplot because rCharts doesn't work in RPresentations
+library(ggplot2)
+p1 <-
+         ggplot(dtop10, aes(x=reorder(Hospital.Name,Selection), y=Selection)) +
+         geom_bar(stat='identity', colour='white', fill="blue")+
+         xlab('Hospital') +
+         coord_flip()+
+         ylab('Mortality avg by month') +
+         theme (title = element_text(colour = "blue")) +
+         theme (axis.text.y = element_text(size = 7.5))
+
+p1
+
+```
